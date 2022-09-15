@@ -1,0 +1,9 @@
+# ignore yolov5
+yolov5*
+
+# ignore pipfile
+Pipfile*
+
+# ignore dataset
+dataset*
+test
