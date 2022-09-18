@@ -9,7 +9,7 @@ import pytesseract
 
 # global variables
 FILEPATH = None
-IMAGE = "./test/test1.jpg"
+IMAGE = "./test/test5.jpg"
 
 
 # weights of crop position
@@ -67,23 +67,32 @@ def ocr_crop_img(image, position, tag_name):
     # img.close()
 
 
+model = torch.hub.load(
+    "ultralytics/yolov5",
+    "custom",
+    path="best.pt",
+    force_reload=True,
+)
+
 # Inference
-model = initial_model()
+# model = initial_model()
 results = model(IMAGE)
 
 # Results
 results.show()
-# print(results.xyxy)  # or .show(), .save(), .crop(), .pandas(), etc.
+print(results.xyxy)  # or .show(), .save(), .crop(), .pandas(), etc.
 
 
 def run():
     for i in range(len(results.xyxy[0])):
-        which_tag = int(results.xyxy[0][i][5])
-        position_list = WEIGHTS[which_tag]
+        # which_tag = int(results.xyxy[0][i][5])
+        # position_list = WEIGHTS[which_tag]
+        position_list = [0, 0, 0, 0]
         for j in range(len(results.xyxy[0][0]) - 2):
             position_list[j] += int(results.xyxy[0][i][j])
 
-        ocr_crop_img(IMAGE, position_list, NAME_LIST[which_tag])
+        # ocr_crop_img(IMAGE, position_list, NAME_LIST[which_tag])
+        ocr_crop_img(IMAGE, position_list, i)
         position_list.clear()
 
 
