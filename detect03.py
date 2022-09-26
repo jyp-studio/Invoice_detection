@@ -6,13 +6,14 @@ import numpy as np
 import math
 from PIL import Image
 import pytesseract
+import matplotlib.pyplot as plt
 
 # global variables
 FILEPATH = None
-IMAGE = "./test/test1.jpg"
+IMAGE = "./test/test6.jpg"
 
 # variable used to change cv2 function
-contrast = 200
+contrast = 100
 brightness = 0
 
 # weights of crop position
@@ -23,7 +24,7 @@ WEIGHTS = [
     [0, 0, 0, 5],  # invoice_number
     [0, 0, 0, 0],  # tax
     [0, -8, 5, 10],  # total
-    [0, -5, 5, 5],  # untaxed
+    [0, -5, 5, 8],  # untaxed
 ]
 NAME_LIST = ["data", "id", "invoice_number", "tax", "total", "untaxed"]
 
@@ -65,19 +66,19 @@ def ocr_crop_img(image, position, tag_name):
     img_crop = img[position[1] : position[3], position[0] : position[2]]
     # modifing img: change contrast and brightness
     # img_mod = cv2.medianBlur(img_crop, 5)
+    # img_mod = cv2.GaussianBlur(img_crop, (5, 5), 0)
     img_mod = img_crop * (contrast / 127 + 1) - contrast + brightness
     img_mod = np.clip(img_mod, 0, 255)
     img_mod = np.uint8(img_mod)
     text = pytesseract.image_to_string(img_mod, lang="chi_tra+eng")
     text = text.replace("\n", "").replace(",", "").replace(" ", "")
     print(f"{tag_name}: {text}")
-    # img.close()
 
 
 model = torch.hub.load(
     "ultralytics/yolov5",
     "custom",
-    path="best.pt",
+    path="4best.pt",
     force_reload=True,
 )
 
@@ -86,7 +87,7 @@ model = torch.hub.load(
 results = model(IMAGE)
 
 # Results
-# results.show()
+results.show()
 print(results.xyxy)  # or .show(), .save(), .crop(), .pandas(), etc.
 
 
@@ -102,3 +103,5 @@ def run():
 
 
 run()
+
+# %%
