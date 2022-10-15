@@ -1,12 +1,16 @@
 # ignore yolov5
 yolov5*
 
+# ignore weights
+*.pt
+
 # ignore pipfile
 Pipfile*
 
 # ignore dataset
 dataset*
 test
+elec
 
 # ignore others
 .DS_Store
