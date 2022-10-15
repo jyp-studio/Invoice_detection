@@ -10,7 +10,7 @@ Pipfile*
 # ignore dataset
 dataset*
 test
-elec
+elec*
 
 # ignore others
 .DS_Store
