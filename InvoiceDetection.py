@@ -23,6 +23,7 @@ class InvoiceDetection:
 
     def info_detection(self, image):
         result = self.model(image)
+        result.show()
         return result
 
     def img_contrast(self, image, contrast, brightness) -> None:
@@ -58,12 +59,36 @@ class InvoiceDetection:
             key, value = self.__word_recognize(
                 image, position_list, self.name_list[which_tag]
             )
+            print(key, value)
             # add result to ans_dict
             ans_dict[f"{key}"] = value
             # clean the list for next info
             position_list.clear()
 
+        # fill up the missing key and value
+        ans_dict = self.__fillup(ans_dict)
+
+        # find untaxed if untaxed is None
+        if (
+            ans_dict["untaxed"] == "x"
+            and ans_dict["tax"] != "x"
+            and ans_dict["total"] != "x"
+        ):
+            ans_dict["untaxed"] = self.__compute_untaxed(
+                ans_dict["total"], ans_dict["tax"]
+            )
+
         return ans_dict
+
+    def __fillup(self, result_dict) -> dict:
+        # fill up missing key and values
+        for key in self.name_list:
+            try:
+                if result_dict[key] != None:
+                    continue
+            except:
+                result_dict[key] = "x"
+        return result_dict
 
     def __crop(self, image, position):
         # bias
@@ -81,24 +106,31 @@ class InvoiceDetection:
 
     def __word_recognize(self, image, position, tag_name):
         # initial ans
-        text = "-1"
-        best_text = ""
+        text = "x"
+        best_text = "NaN"
         max_iter = 100
         iter = 0
 
         while text != best_text and iter < max_iter:
-            if text != "":
+            if text != "" and text != "x":
                 best_text = text
 
             # crop
             img_crop = self.__crop(image, position)
 
             # get words
+            new_text = ""
             text = pytesseract.image_to_string(img_crop, lang="eng")
             if tag_name == "date":
                 new_text = "".join(filter(str.isdigit, text))
-            elif tag_name == "id" or tag_name == "invoice_number":
+            elif tag_name == "id":
+                new_text = "".join(filter(str.isdigit, text))
+                if not self.__check_id(new_text):
+                    new_text = "x"
+            elif tag_name == "invoice_number":
                 new_text = "".join(filter(str.isalnum, text))
+                if not self.__check_invoice_num(new_text):
+                    new_text = "x"
             elif tag_name == "tax" or tag_name == "total" or tag_name == "untaxed":
                 new_text = (
                     text.replace(",", "")
@@ -108,24 +140,53 @@ class InvoiceDetection:
                     .strip()
                 )
 
-            # print(f"{tag_name}: {new_text}")
+            print(f"{tag_name}: {new_text}")
+            text = new_text
 
             iter += 1
 
         # convert the cost that with .00 to float
         if tag_name == "tax" or tag_name == "total" or tag_name == "untaxed":
             try:
-                new_text = str(int(float(new_text)))
+                best_text = str(int(float(best_text)))
+                best_text = "".join(filter(str.isdigit, best_text))
             except:
-                print("tried convert the type of cost to float but failed")
-            finally:
-                new_text = "".join(filter(str.isdigit, new_text))
-        return tag_name, new_text
+                print(f'tried convert the type of "{tag_name}" to float but failed')
+                best_text = "x"
+        elif tag_name == "date":
+            best_text = self.__convert_date(best_text)
+        return tag_name, best_text
 
-    def __check_money(
-        self,
-    ):
-        pass
+    def __convert_date(self, time) -> str:
+        if len(time) == 8:
+            return time
+        elif len(time) == 7:
+            year = int(float(time[:3])) + 1911
+            return str(year) + time[3:]
+        else:
+            return "x"
+
+    def __check_money(self, untaxed, tax, total) -> bool:
+        untaxed = float(untaxed)
+        tax = float(tax)
+        total = float(total)
+        return True if total == untaxed + tax else False
+
+    def __compute_untaxed(self, total, tax) -> int:
+        total = float(total)
+        tax = float(tax)
+        untaxed = total - tax
+        return int(untaxed)
+
+    def __check_id(self, id) -> bool:
+        return True if len(id) == 8 else False
+
+    def __check_invoice_num(self, invoice_num) -> bool:
+        en, num = invoice_num[:2], invoice_num[2:]
+        if en.isalpha() and len(en) == 2 and num.isdigit() and len(num) == 8:
+            return True
+        else:
+            return False
 
     def save(self, ans_dict, columns):
         df = pd.DataFrame(ans_dict)
@@ -138,7 +199,7 @@ class InvoiceDetection:
 
 if __name__ == "__main__":
     # yolo weights path
-    MODEL = "3best.pt"
+    MODEL = "best.pt"
     # weights of crop position (left, top, right, bottom)
     WEIGHTS = [
         [0, -5, 0, 5],  # data
@@ -164,9 +225,9 @@ if __name__ == "__main__":
     FORMAT_ID = 25
     COLUMES = ["資料年", "月份", "發票日期", "對方統一編號", "發票號碼", "格式編號", "銷售金額"]
 
-    for i in range(5):
+    for i in range(0, 26):
         # load image and dectect infos' location
-        image_path = f"./test/test{i}.jpg"
+        image_path = f"./elec_f1/elec_invoice_{i}.jpg"
         image = cv2.imread(image_path)
         image_info_loc = invoice_det.info_detection(image_path)
 
@@ -175,14 +236,6 @@ if __name__ == "__main__":
 
         # ocr
         result_dict = invoice_det.ocr(image_mod, image_info_loc)
-
-        # fill up missing key and values
-        for key in NAME_LIST:
-            try:
-                if result_dict[key] != None:
-                    continue
-            except:
-                result_dict[key] = "x"
 
         print("=========ANSWER==========")
         for key, value in result_dict.items():
@@ -193,7 +246,7 @@ if __name__ == "__main__":
         try:
             year = int(result_dict["date"][:4])
         except:
-            yaer = "x"
+            year = "x"
         try:
             month = int(result_dict["date"][4:6])
         except:
@@ -205,10 +258,16 @@ if __name__ == "__main__":
         years.append(year)
         months.append(month)
         dates.append(f"{year}/{month}/{day}")
-        id.append(result_dict["id"])
+        try:
+            id.append(int(result_dict["id"]))
+        except:
+            id.append(result_dict["id"])
         invoice_num.append(result_dict["invoice_number"])
         format_id.append(FORMAT_ID)
-        untaxed.append(int(result_dict["untaxed"]))
+        try:
+            untaxed.append(int(result_dict["untaxed"]))
+        except:
+            untaxed.append(result_dict["untaxed"])
 
     # save to excel
     final = [years, months, dates, id, invoice_num, format_id, untaxed]
