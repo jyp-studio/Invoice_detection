@@ -70,9 +70,9 @@ class InvoiceDetection:
 
         # find untaxed if untaxed is None
         if (
-            ans_dict["untaxed"] == " "
-            and ans_dict["tax"] != " "
-            and ans_dict["total"] != " "
+            ans_dict["untaxed"] == ""
+            and ans_dict["tax"] != ""
+            and ans_dict["total"] != ""
         ):
             ans_dict["untaxed"] = self.__compute_untaxed(
                 ans_dict["total"], ans_dict["tax"]
@@ -87,7 +87,7 @@ class InvoiceDetection:
                 if result_dict[key] != None:
                     continue
             except:
-                result_dict[key] = " "
+                result_dict[key] = ""
         return result_dict
 
     def __crop(self, image, position):
@@ -152,7 +152,7 @@ class InvoiceDetection:
                 best_text = "".join(filter(str.isdigit, best_text))
             except:
                 print(f'tried convert the type of "{tag_name}" to float but failed')
-                best_text = " "
+                best_text = ""
         elif tag_name == "date":
             best_text = self.__convert_date(best_text)
         return tag_name, best_text
@@ -164,7 +164,7 @@ class InvoiceDetection:
             year = int(float(time[:3])) + 1911
             return str(year) + time[3:]
         else:
-            return " "
+            return ""
 
     def __check_money(self, untaxed, tax, total) -> bool:
         untaxed = float(untaxed)
@@ -246,21 +246,21 @@ if __name__ == "__main__":
         try:
             year = int(result_dict["date"][:4])
         except:
-            year = " "
+            year = ""
         try:
             month = int(result_dict["date"][4:6])
         except:
-            month = " "
+            month = ""
         try:
             day = int(result_dict["date"][6:8])
         except:
-            day = " "
+            day = ""
         years.append(year)
         months.append(month)
-        if year != " " and month != " " and day != " ":
+        if year != "" and month != "" and day != "":
             dates.append(f"{year}/{month}/{day}")
         else:
-            dates.append(" ")
+            dates.append("")
         try:
             id.append(int(result_dict["id"]))
         except:
