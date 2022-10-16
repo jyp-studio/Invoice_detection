@@ -23,7 +23,7 @@ class InvoiceDetection:
 
     def info_detection(self, image):
         result = self.model(image)
-        result.show()
+        # result.show()
         return result
 
     def img_contrast(self, image, contrast, brightness) -> None:
@@ -70,9 +70,9 @@ class InvoiceDetection:
 
         # find untaxed if untaxed is None
         if (
-            ans_dict["untaxed"] == "x"
-            and ans_dict["tax"] != "x"
-            and ans_dict["total"] != "x"
+            ans_dict["untaxed"] == " "
+            and ans_dict["tax"] != " "
+            and ans_dict["total"] != " "
         ):
             ans_dict["untaxed"] = self.__compute_untaxed(
                 ans_dict["total"], ans_dict["tax"]
@@ -87,7 +87,7 @@ class InvoiceDetection:
                 if result_dict[key] != None:
                     continue
             except:
-                result_dict[key] = "x"
+                result_dict[key] = " "
         return result_dict
 
     def __crop(self, image, position):
@@ -152,7 +152,7 @@ class InvoiceDetection:
                 best_text = "".join(filter(str.isdigit, best_text))
             except:
                 print(f'tried convert the type of "{tag_name}" to float but failed')
-                best_text = "x"
+                best_text = " "
         elif tag_name == "date":
             best_text = self.__convert_date(best_text)
         return tag_name, best_text
@@ -164,7 +164,7 @@ class InvoiceDetection:
             year = int(float(time[:3])) + 1911
             return str(year) + time[3:]
         else:
-            return "x"
+            return " "
 
     def __check_money(self, untaxed, tax, total) -> bool:
         untaxed = float(untaxed)
@@ -199,7 +199,7 @@ class InvoiceDetection:
 
 if __name__ == "__main__":
     # yolo weights path
-    MODEL = "best.pt"
+    MODEL = "./weights/best.pt"
     # weights of crop position (left, top, right, bottom)
     WEIGHTS = [
         [0, -5, 0, 5],  # data
@@ -225,9 +225,9 @@ if __name__ == "__main__":
     FORMAT_ID = 25
     COLUMES = ["資料年", "月份", "發票日期", "對方統一編號", "發票號碼", "格式編號", "銷售金額"]
 
-    for i in range(0, 26):
+    for i in range(0, 25):
         # load image and dectect infos' location
-        image_path = f"./elec_f1/elec_invoice_{i}.jpg"
+        image_path = f"./f25_1/elec_invoice_{i}.jpg"
         image = cv2.imread(image_path)
         image_info_loc = invoice_det.info_detection(image_path)
 
@@ -246,18 +246,21 @@ if __name__ == "__main__":
         try:
             year = int(result_dict["date"][:4])
         except:
-            year = "x"
+            year = " "
         try:
             month = int(result_dict["date"][4:6])
         except:
-            month = "x"
+            month = " "
         try:
             day = int(result_dict["date"][6:8])
         except:
-            day = "x"
+            day = " "
         years.append(year)
         months.append(month)
-        dates.append(f"{year}/{month}/{day}")
+        if year != " " and month != " " and day != " ":
+            dates.append(f"{year}/{month}/{day}")
+        else:
+            dates.append(" ")
         try:
             id.append(int(result_dict["id"]))
         except:
