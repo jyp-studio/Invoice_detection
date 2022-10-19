@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pytesseract
 import pandas as pd
+import os
 
 
 class InvoiceDetection:
@@ -107,7 +108,7 @@ class InvoiceDetection:
     def __word_recognize(self, image, position, tag_name):
         # initial ans
         text = "x"
-        best_text = "NaN"
+        best_text = ""
         max_iter = 100
         iter = 0
 
@@ -188,31 +189,34 @@ class InvoiceDetection:
         else:
             return False
 
-    def save(self, ans_dict, columns):
+    def save(self, folder_path, ans_dict, columns):
+        def uniquify(path):
+            filename, extension = os.path.splitext(path)
+            counter = 1
+
+            while os.path.exists(path):
+                path = filename + "_" + str(counter) + extension
+                counter += 1
+
+            return path
+
         df = pd.DataFrame(ans_dict)
         df = df.T
         df.columns = columns
         df["確認(Y/N)"] = pd.Series(dtype=str)
         df = df.fillna("")
-        df.to_excel("test.xlsx", index=False)
+
+        # save file
+        if os.path.isdir(folder_path):
+            file_path = uniquify(f"{folder_path}/result.xlsx")
+            df.to_excel(file_path, index=False)
+        else:
+            print("path not found!")
 
 
-if __name__ == "__main__":
-    # yolo weights path
-    MODEL = "./weights/best.pt"
-    # weights of crop position (left, top, right, bottom)
-    WEIGHTS = [
-        [0, -5, 0, 5],  # data
-        [0, 0, 0, 0],  # id
-        [0, 0, 0, 5],  # invoice_number
-        [0, -10, 0, 10],  # tax
-        [0, -8, 5, 10],  # total
-        [0, -5, 5, 8],  # untaxed
-    ]
-    NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
-
+def run_detection(model, weights, name_list, open_path, save_path):
     # set up model
-    invoice_det = InvoiceDetection(MODEL, WEIGHTS, NAME_LIST)
+    invoice_det = InvoiceDetection(model, weights, name_list)
 
     # set up final results
     years = []
@@ -225,12 +229,17 @@ if __name__ == "__main__":
     FORMAT_ID = 25
     COLUMES = ["資料年", "月份", "發票日期", "對方統一編號", "發票號碼", "格式編號", "銷售金額"]
 
-    for i in range(0, 25):
-        # load image and dectect infos' location
-        image_path = f"./f25_1/elec_invoice_{i}.jpg"
-        image = cv2.imread(image_path)
-        image_info_loc = invoice_det.info_detection(image_path)
+    all_img = os.listdir(open_path)
+    for img in all_img:
 
+        # load image and dectect infos' location
+        img_path = os.path.join(open_path, img)
+        print(img_path)
+        try:
+            image = cv2.imread(img_path)
+            image_info_loc = invoice_det.info_detection(img_path)
+        except:
+            continue
         # image processing
         image_mod = invoice_det.img_contrast(image, contrast=100, brightness=0)
 
@@ -264,7 +273,7 @@ if __name__ == "__main__":
         try:
             id.append(int(result_dict["id"]))
         except:
-            id.append(result_dict["id"])
+            id.append("")
         invoice_num.append(result_dict["invoice_number"])
         format_id.append(FORMAT_ID)
         try:
@@ -273,5 +282,25 @@ if __name__ == "__main__":
             untaxed.append(result_dict["untaxed"])
 
     # save to excel
+
     final = [years, months, dates, id, invoice_num, format_id, untaxed]
-    invoice_det.save(final, COLUMES)
+    invoice_det.save(save_path, final, COLUMES)
+
+
+if __name__ == "__main__":
+    # yolo weights path
+    MODEL = "./weights/f25_1all_v3.pt"
+    # weights of crop position (left, top, right, bottom)
+    WEIGHTS = [
+        [0, -5, 0, 5],  # data
+        [0, 0, 0, 0],  # id
+        [0, 0, 0, 5],  # invoice_number
+        [0, -10, 0, 10],  # tax
+        [0, -8, 5, 10],  # total
+        [0, -5, 5, 8],  # untaxed
+    ]
+    NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
+    OPEN_PATH = "./f25_1"
+    SAVE_PATH = "./results"
+
+    run_detection(MODEL, WEIGHTS, NAME_LIST, OPEN_PATH, SAVE_PATH)
