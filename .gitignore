@@ -11,7 +11,12 @@ Pipfile*
 dataset*
 test
 elec*
+f25*
+
+# ignore results
+results
 
 # ignore others
 .DS_Store
 .vscode
+__pycache__
