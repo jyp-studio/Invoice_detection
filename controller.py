@@ -88,7 +88,9 @@ class Controller(QtWidgets.QMainWindow):
 
         self.final = []
         self.final1 = []
+        self.final1_done = False
         self.final2 = []
+        self.final2_done = False
 
     def setup_control(self):
         self.ui.btnLoad.clicked.connect(self.open_folder)
@@ -97,21 +99,17 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.btnStart.clicked.connect(self.startThread)
 
     def startThread(self):
-        # disableBtn = Worker(self.btnDisable)
+        worker1 = Worker(self.recognition_init)
 
-        worker = Worker(self.recognition_init)
-        # done and start verifying
-        # worker.signals.finished.connect(self.verifyThread)
-        worker.signals.finished.connect(self.save)
-
-        # self.threadpool.start(disableBtn)
-        self.threadpool.start(worker)
+        # worker1.signals.finished.connect(self.saveThread)
+        worker1.signals.finished.connect(self.verifyThread)
+        # worker1.signals.finished.connect(self.save)
+        self.threadpool.start(worker1)
 
     def verifyThread(self):
-        worker = Worker(self.recognition_verify)
-        worker.signals.finished.connect(self.saveThread)
-
-        self.threadpool.start(worker)
+        worker2 = Worker(self.recognition_verify)
+        worker2.signals.finished.connect(self.compare_and_save)
+        self.threadpool.start(worker2)
 
     def saveThread(self):
         worker = Worker(self.compare_and_save)
@@ -155,7 +153,10 @@ class Controller(QtWidgets.QMainWindow):
         model = ALL_MODELS[selected_format]
         weight = ALL_WEIGHTS[selected_format]
         name_list = NAME_LIST
-        self.final1 = self.recognition(open_path, model, weight, name_list, format_id)
+        text = "start running..."
+        self.final1 = self.recognition(
+            open_path, model, weight, name_list, format_id, text
+        )
 
     def recognition_verify(self):
         self.ui.labelConsole.setText("verifying...")
@@ -166,9 +167,12 @@ class Controller(QtWidgets.QMainWindow):
         model = VERIFY_MODELS[selected_format]
         weight = VERIFY_WEIGHTS[selected_format]
         name_list = NAME_LIST
-        self.final2 = self.recognition(open_path, model, weight, name_list, format_id)
+        text = "verifying..."
+        self.final2 = self.recognition(
+            open_path, model, weight, name_list, format_id, text
+        )
 
-    def recognition(self, open_path, model, weight, name_list, format):
+    def recognition(self, open_path, model, weight, name_list, format, text):
         try:
             # set up model
             invoice_det = InvoiceDetection(model, weight, name_list)
@@ -185,9 +189,7 @@ class Controller(QtWidgets.QMainWindow):
             counter = 1
             all_img = os.listdir(open_path)
             for img in all_img:
-                self.ui.labelConsole.setText(
-                    f"start running... {counter}/{len(all_img)}"
-                )
+                self.ui.labelConsole.setText(f"{text} {counter}/{len(all_img)}")
 
                 # load image and dectect infos' location
                 img_path = os.path.join(open_path, img)
@@ -259,15 +261,13 @@ class Controller(QtWidgets.QMainWindow):
 
     def save(self):
         save_path = self.ui.lineEditSave.text()
-        print(self.final1)
         self.draw()
-        save_to_excel(save_path, self.final1, COLUMES)
+        save_to_excel(save_path, self.final, COLUMES)
         self.ui.labelConsole.setText("Result saved")
 
     def draw(self):
         dr = Figure_Canvas()
-        # final = [[2, 2, 2, 2], [1, 1, "", 1], [3, "", 3, 3]]
-        dr.draw_pie(self.final1)
+        dr.draw_pie(self.final)
         graphicscene = QtWidgets.QGraphicsScene()
         graphicscene.addWidget(dr)
         self.ui.canvas.setScene(graphicscene)
@@ -286,7 +286,7 @@ class Figure_Canvas(FigureCanvas):
 
     def draw_pie(self, final):
         counter = 0
-        total = len(final)
+        total = len(final[0])
         matrix = np.mat(final)
         matrix = matrix.T
         matrix = matrix.tolist()
@@ -298,8 +298,8 @@ class Figure_Canvas(FigureCanvas):
 
         # draw
         self.axes.pie(
-            x=[counter, total - counter],
-            labels=["Fail", "100%"],
+            x=[total - counter, counter],
+            labels=["100%", "Fail"],
             radius=1.5,
             startangle=60,
             autopct="%.1f%%",
