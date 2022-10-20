@@ -7,6 +7,12 @@ from setting import *
 import traceback, sys
 import copy
 
+import matplotlib
+
+matplotlib.use("Qt5Agg")
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
 
 class WorkerSignals(QObject):
     """
@@ -80,11 +86,13 @@ class Controller(QtWidgets.QMainWindow):
 
         self.threadpool = QThreadPool()
 
+        self.final = []
         self.final1 = []
         self.final2 = []
 
     def setup_control(self):
         self.ui.btnLoad.clicked.connect(self.open_folder)
+        # self.ui.btnLoad.clicked.connect(self.draw)
         self.ui.btnSave.clicked.connect(self.select_save_folder)
         self.ui.btnStart.clicked.connect(self.startThread)
 
@@ -93,7 +101,8 @@ class Controller(QtWidgets.QMainWindow):
 
         worker = Worker(self.recognition_init)
         # done and start verifying
-        worker.signals.finished.connect(self.verifyThread)
+        # worker.signals.finished.connect(self.verifyThread)
+        worker.signals.finished.connect(self.save)
 
         # self.threadpool.start(disableBtn)
         self.threadpool.start(worker)
@@ -237,8 +246,8 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.labelConsole.setText("Path not found")
 
     def compare_and_save(self):
-        result = self.compare()
-        self.save(result)
+        self.final = self.compare()
+        self.save()
 
     def compare(self):
         result = copy.deepcopy(self.final1)
@@ -248,7 +257,51 @@ class Controller(QtWidgets.QMainWindow):
                     result[i][j] = self.final2[i][j]
         return result
 
-    def save(self, final):
+    def save(self):
         save_path = self.ui.lineEditSave.text()
-        save_to_excel(save_path, final, COLUMES)
+        print(self.final1)
+        self.draw()
+        save_to_excel(save_path, self.final1, COLUMES)
         self.ui.labelConsole.setText("Result saved")
+
+    def draw(self):
+        dr = Figure_Canvas()
+        # final = [[2, 2, 2, 2], [1, 1, "", 1], [3, "", 3, 3]]
+        dr.draw_pie(self.final1)
+        graphicscene = QtWidgets.QGraphicsScene()
+        graphicscene.addWidget(dr)
+        self.ui.canvas.setScene(graphicscene)
+        self.ui.canvas.show()
+
+
+# connect pyqt and matplot
+class Figure_Canvas(FigureCanvas):
+    def __init__(self, parent=None, width=5, height=3, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=135)
+
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+
+        self.axes = fig.add_subplot(111)
+
+    def draw_pie(self, final):
+        counter = 0
+        total = len(final)
+        matrix = np.mat(final)
+        matrix = matrix.T
+        matrix = matrix.tolist()
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                if matrix[i][j] == "":
+                    counter += 1
+                    break
+
+        # draw
+        self.axes.pie(
+            x=[counter, total - counter],
+            labels=["Fail", "100%"],
+            radius=1.5,
+            startangle=60,
+            autopct="%.1f%%",
+            textprops={"weight": "bold", "size": 16},
+        )
