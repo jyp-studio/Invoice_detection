@@ -100,22 +100,17 @@ class Controller(QtWidgets.QMainWindow):
 
     def startThread(self):
         worker1 = Worker(self.recognition_init)
-
-        # worker1.signals.finished.connect(self.saveThread)
-        worker1.signals.finished.connect(self.verifyThread)
-        # worker1.signals.finished.connect(self.save)
+        # worker1.signals.finished.connect(self.verifyThread)
+        worker1.signals.finished.connect(self.compare_and_save)
+        worker2 = Worker(self.recognition_verify)
+        worker2.signals.finished.connect(self.compare_and_save)
+        self.threadpool.start(worker2)
         self.threadpool.start(worker1)
 
     def verifyThread(self):
         worker2 = Worker(self.recognition_verify)
         worker2.signals.finished.connect(self.compare_and_save)
         self.threadpool.start(worker2)
-
-    def saveThread(self):
-        worker = Worker(self.compare_and_save)
-        worker.signals.finished.connect(self.thread_complete)
-
-        self.threadpool.start(worker)
 
     def thread_complete(self):
         self.btnEnable(True)
@@ -154,6 +149,7 @@ class Controller(QtWidgets.QMainWindow):
         weight = ALL_WEIGHTS[selected_format]
         name_list = NAME_LIST
         text = "start running..."
+        self.final1 = []
         self.final1 = self.recognition(
             open_path, model, weight, name_list, format_id, text
         )
@@ -168,6 +164,7 @@ class Controller(QtWidgets.QMainWindow):
         weight = VERIFY_WEIGHTS[selected_format]
         name_list = NAME_LIST
         text = "verifying..."
+        self.final2 = []
         self.final2 = self.recognition(
             open_path, model, weight, name_list, format_id, text
         )
@@ -248,8 +245,9 @@ class Controller(QtWidgets.QMainWindow):
             self.ui.labelConsole.setText("Path not found")
 
     def compare_and_save(self):
-        self.final = self.compare()
-        self.save()
+        if len(self.final1) > 0 and len(self.final2) > 0:
+            self.final = self.compare()
+            self.save()
 
     def compare(self):
         result = copy.deepcopy(self.final1)
