@@ -60,7 +60,6 @@ class InvoiceDetection:
             key, value = self.__word_recognize(
                 image, position_list, self.name_list[which_tag]
             )
-            print(key, value)
             # add result to ans_dict
             ans_dict[f"{key}"] = value
             # clean the list for next info
@@ -189,102 +188,30 @@ class InvoiceDetection:
         else:
             return False
 
-    def save(self, folder_path, ans_dict, columns):
-        def uniquify(path):
-            filename, extension = os.path.splitext(path)
-            counter = 1
 
-            while os.path.exists(path):
-                path = filename + "_" + str(counter) + extension
-                counter += 1
+def save_to_excel(folder_path, ans_dict, columns):
+    def uniquify(path):
+        filename, extension = os.path.splitext(path)
+        counter = 1
 
-            return path
+        while os.path.exists(path):
+            path = filename + "_" + str(counter) + extension
+            counter += 1
 
-        df = pd.DataFrame(ans_dict)
-        df = df.T
-        df.columns = columns
-        df["確認(Y/N)"] = pd.Series(dtype=str)
-        df = df.fillna("")
+        return path
 
-        # save file
-        if os.path.isdir(folder_path):
-            file_path = uniquify(f"{folder_path}/result.xlsx")
-            df.to_excel(file_path, index=False)
-        else:
-            print("path not found!")
+    df = pd.DataFrame(ans_dict)
+    df = df.T
+    df.columns = columns
+    df["確認(Y/N)"] = pd.Series(dtype=str)
+    df = df.fillna("")
 
-
-def run_detection(model, weights, name_list, open_path, save_path):
-    # set up model
-    invoice_det = InvoiceDetection(model, weights, name_list)
-
-    # set up final results
-    years = []
-    months = []
-    dates = []
-    id = []
-    invoice_num = []
-    format_id = []
-    untaxed = []
-    FORMAT_ID = 25
-    COLUMES = ["資料年", "月份", "發票日期", "對方統一編號", "發票號碼", "格式編號", "銷售金額"]
-
-    all_img = os.listdir(open_path)
-    for img in all_img:
-
-        # load image and dectect infos' location
-        img_path = os.path.join(open_path, img)
-        print(img_path)
-        try:
-            image = cv2.imread(img_path)
-            image_info_loc = invoice_det.info_detection(img_path)
-        except:
-            continue
-        # image processing
-        image_mod = invoice_det.img_contrast(image, contrast=100, brightness=0)
-
-        # ocr
-        result_dict = invoice_det.ocr(image_mod, image_info_loc)
-
-        print("=========ANSWER==========")
-        for key, value in result_dict.items():
-            print(f"{key}: {value}")
-        print("=========ANSWER==========")
-
-        # append to final list
-        try:
-            year = int(result_dict["date"][:4])
-        except:
-            year = ""
-        try:
-            month = int(result_dict["date"][4:6])
-        except:
-            month = ""
-        try:
-            day = int(result_dict["date"][6:8])
-        except:
-            day = ""
-        years.append(year)
-        months.append(month)
-        if year != "" and month != "" and day != "":
-            dates.append(f"{year}/{month}/{day}")
-        else:
-            dates.append("")
-        try:
-            id.append(int(result_dict["id"]))
-        except:
-            id.append("")
-        invoice_num.append(result_dict["invoice_number"])
-        format_id.append(FORMAT_ID)
-        try:
-            untaxed.append(int(result_dict["untaxed"]))
-        except:
-            untaxed.append(result_dict["untaxed"])
-
-    # save to excel
-
-    final = [years, months, dates, id, invoice_num, format_id, untaxed]
-    invoice_det.save(save_path, final, COLUMES)
+    # save file
+    if os.path.isdir(folder_path):
+        file_path = uniquify(f"{folder_path}/result.xlsx")
+        df.to_excel(file_path, index=False)
+    else:
+        print("path not found!")
 
 
 if __name__ == "__main__":
@@ -302,5 +229,3 @@ if __name__ == "__main__":
     NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
     OPEN_PATH = "./f25_1"
     SAVE_PATH = "./results"
-
-    run_detection(MODEL, WEIGHTS, NAME_LIST, OPEN_PATH, SAVE_PATH)

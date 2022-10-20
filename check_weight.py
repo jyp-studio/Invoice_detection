@@ -4,12 +4,12 @@ import pytesseract
 
 
 # yolo weights path
-MODEL = "./weights/f25_1all_v3.pt"
+MODEL = "./weights/best_v2.pt"
 # weights of crop position (left, top, right, bottom)
 # f25_1 weight
 WEIGHTS = [
     [-5, -10, 15, 10],  # data
-    [13, -5, 5, 5],  # id
+    [5, -8, 5, 10],  # id
     [0, -5, 5, 5],  # invoice_number
     [0, -10, 5, 10],  # tax
     [-5, -10, 5, 10],  # total
@@ -17,7 +17,7 @@ WEIGHTS = [
 ]
 NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
 
-IMAGE_PATH = "./f25_1s/elec_invoice_6.jpg"
+IMAGE_PATH = "./f25_1s/elec_invoice_36.jpg"
 
 
 def ocr(image, info_loc) -> dict:
