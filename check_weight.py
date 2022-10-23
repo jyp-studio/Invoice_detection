@@ -64,9 +64,22 @@ def word_recognize(image, position, tag_name):
 
 if __name__ == "__main__":
     # set up model
+    """
     model = torch.hub.load(
-        "ultralytics/yolov5", "custom", path=MODEL, force_reload=True
+        "ultralytics/yolov5",
+        "custom",
+        path=MODEL,
+        force_reload=True,
     )
+    """
+    model = torch.hub.load(
+        "yolov5",
+        "custom",
+        path=MODEL,
+        source="local",
+        force_reload=True,
+    )
+
     image = cv2.imread(IMAGE_PATH)
     info = model(IMAGE_PATH)
     info.show()

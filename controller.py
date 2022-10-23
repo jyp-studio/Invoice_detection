@@ -88,9 +88,10 @@ class Controller(QtWidgets.QMainWindow):
 
         self.final = []
         self.final1 = []
-        self.final1_done = False
         self.final2 = []
-        self.final2_done = False
+        self.final3 = []
+        self.final4 = []
+        self.final5 = []
 
     def setup_control(self):
         self.ui.btnLoad.clicked.connect(self.open_folder)
@@ -99,23 +100,23 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.btnStart.clicked.connect(self.startThread)
 
     def startThread(self):
-        worker1 = Worker(self.recognition_init)
+        worker1 = Worker(self.recognition_worker_1)
+        worker2 = Worker(self.recognition_worker_2)
+        worker3 = Worker(self.recognition_worker_3)
+        worker4 = Worker(self.recognition_worker_4)
+        worker5 = Worker(self.recognition_worker_5)
 
-        # worker1.signals.finished.connect(self.saveThread)
-        worker1.signals.finished.connect(self.verifyThread)
-        # worker1.signals.finished.connect(self.save)
-        self.threadpool.start(worker1)
-
-    def verifyThread(self):
-        worker2 = Worker(self.recognition_verify)
+        worker1.signals.finished.connect(self.compare_and_save)
         worker2.signals.finished.connect(self.compare_and_save)
+        worker3.signals.finished.connect(self.compare_and_save)
+        worker4.signals.finished.connect(self.compare_and_save)
+        worker5.signals.finished.connect(self.compare_and_save)
+
+        self.threadpool.start(worker1)
         self.threadpool.start(worker2)
-
-    def saveThread(self):
-        worker = Worker(self.compare_and_save)
-        worker.signals.finished.connect(self.thread_complete)
-
-        self.threadpool.start(worker)
+        self.threadpool.start(worker3)
+        self.threadpool.start(worker4)
+        self.threadpool.start(worker5)
 
     def thread_complete(self):
         self.btnEnable(True)
@@ -144,31 +145,83 @@ class Controller(QtWidgets.QMainWindow):
         folder_path = QFileDialog.getExistingDirectory(self, "Open folder", "./")
         self.ui.lineEditSave.setText(folder_path)
 
-    def recognition_init(self):
-        self.ui.labelConsole.setText("start running...")
+    def recognition_worker_1(self):
+        print("w1")
+        self.ui.labelConsole.setText("worker1 start running...")
         open_path = self.ui.lineEditLoad.text()
         # save_path = self.ui.lineEditSave.text()
         selected_format = self.ui.comboBoxFormat.currentText()
         format_id = ALL_FORMATS[selected_format]
-        model = ALL_MODELS[selected_format]
-        weight = ALL_WEIGHTS[selected_format]
+        model = MODELS_1[selected_format]
+        weight = WEIGHTS_1[selected_format]
         name_list = NAME_LIST
-        text = "start running..."
+        text = "worker1 start running..."
+        self.final1 = []
         self.final1 = self.recognition(
             open_path, model, weight, name_list, format_id, text
         )
 
-    def recognition_verify(self):
-        self.ui.labelConsole.setText("verifying...")
+    def recognition_worker_2(self):
+        print("w2")
+        self.ui.labelConsole.setText("worker2 start running...")
         open_path = self.ui.lineEditLoad.text()
         # save_path = self.ui.lineEditSave.text()
         selected_format = self.ui.comboBoxFormat.currentText()
         format_id = ALL_FORMATS[selected_format]
-        model = VERIFY_MODELS[selected_format]
-        weight = VERIFY_WEIGHTS[selected_format]
+        model = MODELS_2[selected_format]
+        weight = WEIGHTS_2[selected_format]
         name_list = NAME_LIST
-        text = "verifying..."
+        text = "worker2 start running..."
+        self.final2 = []
         self.final2 = self.recognition(
+            open_path, model, weight, name_list, format_id, text
+        )
+
+    def recognition_worker_3(self):
+        print("w3")
+        self.ui.labelConsole.setText("worker3 start running...")
+        open_path = self.ui.lineEditLoad.text()
+        # save_path = self.ui.lineEditSave.text()
+        selected_format = self.ui.comboBoxFormat.currentText()
+        format_id = ALL_FORMATS[selected_format]
+        model = MODELS_3[selected_format]
+        weight = WEIGHTS_3[selected_format]
+        name_list = NAME_LIST
+        text = "worker3 start running..."
+        self.final3 = []
+        self.final3 = self.recognition(
+            open_path, model, weight, name_list, format_id, text
+        )
+
+    def recognition_worker_4(self):
+        print("w4")
+        self.ui.labelConsole.setText("worker4 start running...")
+        open_path = self.ui.lineEditLoad.text()
+        # save_path = self.ui.lineEditSave.text()
+        selected_format = self.ui.comboBoxFormat.currentText()
+        format_id = ALL_FORMATS[selected_format]
+        model = MODELS_4[selected_format]
+        weight = WEIGHTS_4[selected_format]
+        name_list = NAME_LIST
+        text = "worker4 start running..."
+        self.final4 = []
+        self.final4 = self.recognition(
+            open_path, model, weight, name_list, format_id, text
+        )
+
+    def recognition_worker_5(self):
+        print("w5")
+        self.ui.labelConsole.setText("worker5 start running...")
+        open_path = self.ui.lineEditLoad.text()
+        # save_path = self.ui.lineEditSave.text()
+        selected_format = self.ui.comboBoxFormat.currentText()
+        format_id = ALL_FORMATS[selected_format]
+        model = MODELS_5[selected_format]
+        weight = WEIGHTS_5[selected_format]
+        name_list = NAME_LIST
+        text = "worker5 start running..."
+        self.final5 = []
+        self.final5 = self.recognition(
             open_path, model, weight, name_list, format_id, text
         )
 
@@ -190,6 +243,7 @@ class Controller(QtWidgets.QMainWindow):
             all_img = os.listdir(open_path)
             for img in all_img:
                 self.ui.labelConsole.setText(f"{text} {counter}/{len(all_img)}")
+                print(text)
 
                 # load image and dectect infos' location
                 img_path = os.path.join(open_path, img)
@@ -204,10 +258,10 @@ class Controller(QtWidgets.QMainWindow):
                 # ocr
                 result_dict = invoice_det.ocr(image_mod, image_info_loc)
 
-                print("=========ANSWER==========")
-                for key, value in result_dict.items():
-                    print(f"{key}: {value}")
-                print("=========ANSWER==========")
+                # print("=========ANSWER==========")
+                # for key, value in result_dict.items():
+                #    print(f"{key}: {value}")
+                # print("=========ANSWER==========")
 
                 # append to final list
                 try:
@@ -245,18 +299,43 @@ class Controller(QtWidgets.QMainWindow):
             final = [years, months, dates, id, invoice_num, format_id, untaxed]
             return final
         except:
-            self.ui.labelConsole.setText("Path not found")
+            self.ui.labelConsole.setText("Path not found or Network error")
 
     def compare_and_save(self):
-        self.final = self.compare()
-        self.save()
+        isDone = False
+        try:
+            if (
+                len(self.final1) > 0
+                and len(self.final2) > 0
+                and len(self.final3) > 0
+                and len(self.final4) > 0
+                and len(self.final5) > 0
+            ):
+                isDone = True
+        except:
+            print("compare failed")
+
+        if isDone:
+            self.final = self.compare()
+            self.save()
 
     def compare(self):
         result = copy.deepcopy(self.final1)
+        compare_list = []
         for i in range(len(self.final1)):
             for j in range(len(self.final1[i])):
-                if self.final1[i][j] == "":
-                    result[i][j] = self.final2[i][j]
+                compare_list.append(self.final1[i][j])
+                compare_list.append(self.final2[i][j])
+                compare_list.append(self.final3[i][j])
+                compare_list.append(self.final4[i][j])
+                compare_list.append(self.final5[i][j])
+
+                while "" in compare_list:
+                    compare_list.remove("")
+                most = max(compare_list, key=compare_list.count, default="")
+                result[i][j] = most if most != "" else ""
+                compare_list.clear()
+
         return result
 
     def save(self):
@@ -285,21 +364,38 @@ class Figure_Canvas(FigureCanvas):
         self.axes = fig.add_subplot(111)
 
     def draw_pie(self, final):
-        counter = 0
+        row_wrong_counter = 0
+        counter_80 = 0
         total = len(final[0])
         matrix = np.mat(final)
         matrix = matrix.T
         matrix = matrix.tolist()
         for i in range(len(matrix)):
+            value_wrong_counter = 0
             for j in range(len(matrix[i])):
                 if matrix[i][j] == "":
-                    counter += 1
-                    break
+                    value_wrong_counter += 1
+            if value_wrong_counter > 0:
+                row_wrong_counter += 1
+                if value_wrong_counter == 1:
+                    counter_80 += 1
+
+        X = []
+        LABELS = []
+        if total - row_wrong_counter > 0:
+            X.append(total - row_wrong_counter)
+            LABELS.append("100%")
+        if counter_80 > 0:
+            X.append(counter_80)
+            LABELS.append("80%")
+        if row_wrong_counter - counter_80 > 0:
+            X.append(row_wrong_counter - counter_80)
+            LABELS.append("Fail")
 
         # draw
         self.axes.pie(
-            x=[total - counter, counter],
-            labels=["100%", "Fail"],
+            x=X,
+            labels=LABELS,
             radius=1.5,
             startangle=60,
             autopct="%.1f%%",
