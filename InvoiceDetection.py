@@ -10,8 +10,14 @@ import os
 class InvoiceDetection:
     def __init__(self, model_path, weights, name_list) -> None:
         # model
+        """model from network
         self.model = torch.hub.load(
             "ultralytics/yolov5", "custom", path=model_path, force_reload=True
+        )
+        """
+        # local model
+        self.model = torch.hub.load(
+            "yolov5", "custom", path=model_path, source="local", force_reload=True
         )
 
         # name list and weights
@@ -140,7 +146,7 @@ class InvoiceDetection:
                     .strip()
                 )
 
-            print(f"{tag_name}: {new_text}")
+            # print(f"{tag_name}: {new_text}")
             text = new_text
 
             iter += 1
