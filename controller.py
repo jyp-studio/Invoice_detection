@@ -1,11 +1,12 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import QRunnable, QThreadPool, pyqtSlot, QObject, pyqtSignal
-from PyQt6.QtWidgets import QFileDialog
+from PyQt6.QtWidgets import QFileDialog, QMessageBox, QGraphicsScene
 from main_gui import Ui_MainWindow
 from InvoiceDetection import *
 from setting import *
 import traceback, sys
 import copy
+import time
 
 import matplotlib
 
@@ -72,12 +73,14 @@ class Worker(QRunnable):
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            self.signals.result.emit(result)  # Return the result of the processing
+            self.signals.result.emit(
+                result)  # Return the result of the processing
         finally:
             self.signals.finished.emit()  # Done
 
 
 class Controller(QtWidgets.QMainWindow):
+
     def __init__(self):
         super().__init__()
         self.ui = Ui_MainWindow()
@@ -86,12 +89,19 @@ class Controller(QtWidgets.QMainWindow):
 
         self.threadpool = QThreadPool()
 
+        # error list for recognition fail
+        self.error_list = []
+        self.indices = []
         self.final = []
         self.final1 = []
         self.final2 = []
         self.final3 = []
         self.final4 = []
         self.final5 = []
+
+        self.time_start = 0
+        self.time_end = 0
+        self.time_cost = 0
 
     def setup_control(self):
         self.ui.btnLoad.clicked.connect(self.open_folder)
@@ -100,6 +110,7 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.btnStart.clicked.connect(self.startThread)
 
     def startThread(self):
+        self.time_start = time.time()
         worker1 = Worker(self.recognition_worker_1)
         worker2 = Worker(self.recognition_worker_2)
         worker3 = Worker(self.recognition_worker_3)
@@ -138,11 +149,13 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.comboBoxFormat.setEnabled = False
 
     def open_folder(self):
-        folder_path = QFileDialog.getExistingDirectory(self, "Open folder", "./")
+        folder_path = QFileDialog.getExistingDirectory(self, "Open folder",
+                                                       "./")
         self.ui.lineEditLoad.setText(folder_path)
 
     def select_save_folder(self):
-        folder_path = QFileDialog.getExistingDirectory(self, "Open folder", "./")
+        folder_path = QFileDialog.getExistingDirectory(self, "Open folder",
+                                                       "./")
         self.ui.lineEditSave.setText(folder_path)
 
     def recognition_worker_1(self):
@@ -157,9 +170,8 @@ class Controller(QtWidgets.QMainWindow):
         name_list = NAME_LIST
         text = "worker1 start running..."
         self.final1 = []
-        self.final1 = self.recognition(
-            open_path, model, weight, name_list, format_id, text
-        )
+        self.final1 = self.recognition(open_path, model, weight, name_list,
+                                       format_id, text)
 
     def recognition_worker_2(self):
         print("w2")
@@ -173,9 +185,8 @@ class Controller(QtWidgets.QMainWindow):
         name_list = NAME_LIST
         text = "worker2 start running..."
         self.final2 = []
-        self.final2 = self.recognition(
-            open_path, model, weight, name_list, format_id, text
-        )
+        self.final2 = self.recognition(open_path, model, weight, name_list,
+                                       format_id, text)
 
     def recognition_worker_3(self):
         print("w3")
@@ -189,9 +200,8 @@ class Controller(QtWidgets.QMainWindow):
         name_list = NAME_LIST
         text = "worker3 start running..."
         self.final3 = []
-        self.final3 = self.recognition(
-            open_path, model, weight, name_list, format_id, text
-        )
+        self.final3 = self.recognition(open_path, model, weight, name_list,
+                                       format_id, text)
 
     def recognition_worker_4(self):
         print("w4")
@@ -205,9 +215,8 @@ class Controller(QtWidgets.QMainWindow):
         name_list = NAME_LIST
         text = "worker4 start running..."
         self.final4 = []
-        self.final4 = self.recognition(
-            open_path, model, weight, name_list, format_id, text
-        )
+        self.final4 = self.recognition(open_path, model, weight, name_list,
+                                       format_id, text)
 
     def recognition_worker_5(self):
         print("w5")
@@ -221,9 +230,8 @@ class Controller(QtWidgets.QMainWindow):
         name_list = NAME_LIST
         text = "worker5 start running..."
         self.final5 = []
-        self.final5 = self.recognition(
-            open_path, model, weight, name_list, format_id, text
-        )
+        self.final5 = self.recognition(open_path, model, weight, name_list,
+                                       format_id, text)
 
     def recognition(self, open_path, model, weight, name_list, format, text):
         try:
@@ -242,8 +250,9 @@ class Controller(QtWidgets.QMainWindow):
             counter = 1
             all_img = os.listdir(open_path)
             for img in all_img:
-                self.ui.labelConsole.setText(f"{text} {counter}/{len(all_img)}")
-                print(text)
+                self.ui.labelConsole.setText(
+                    f"{text} {counter}/{len(all_img)}")
+                # print(text)
 
                 # load image and dectect infos' location
                 img_path = os.path.join(open_path, img)
@@ -252,8 +261,14 @@ class Controller(QtWidgets.QMainWindow):
                     image_info_loc = invoice_det.info_detection(img_path)
                 except:
                     continue
+                # get name
+                name = os.path.basename(img_path)
+                if text == "worker1 start running...":
+                    self.indices.append(name)
                 # image processing
-                image_mod = invoice_det.img_contrast(image, contrast=100, brightness=0)
+                image_mod = invoice_det.img_contrast(image,
+                                                     contrast=100,
+                                                     brightness=0)
 
                 # ocr
                 result_dict = invoice_det.ocr(image_mod, image_info_loc)
@@ -303,27 +318,28 @@ class Controller(QtWidgets.QMainWindow):
 
     def compare_and_save(self):
         isDone = False
-        try:
-            if (
-                len(self.final1) > 0
-                and len(self.final2) > 0
-                and len(self.final3) > 0
-                and len(self.final4) > 0
-                and len(self.final5) > 0
-            ):
-                isDone = True
-        except:
-            print("compare failed")
+        if self.final1 and self.final2 and self.final3 and self.final4 and self.final5:
+            isDone = True
 
         if isDone:
             self.final = self.compare()
+            self.time_end = time.time()
+            self.time_cost = self.time_end - self.time_start
+            print("cost", self.time_cost)
             self.save()
 
     def compare(self):
+        print(self.indices)
+        print(self.final1)
+        print(self.final2)
+        print(self.final3)
+        print(self.final4)
+        print(self.final5)
         result = copy.deepcopy(self.final1)
         compare_list = []
         for i in range(len(self.final1)):
             for j in range(len(self.final1[i])):
+                print(i, j)
                 compare_list.append(self.final1[i][j])
                 compare_list.append(self.final2[i][j])
                 compare_list.append(self.final3[i][j])
@@ -333,7 +349,13 @@ class Controller(QtWidgets.QMainWindow):
                 while "" in compare_list:
                     compare_list.remove("")
                 most = max(compare_list, key=compare_list.count, default="")
-                result[i][j] = most if most != "" else ""
+                if most != "":
+                    result[i][j] = most
+                else:
+                    result[i][j] = ""
+                    print("error", self.indices[i])
+                    if self.indices[j] not in self.error_list:
+                        self.error_list.append(self.indices[j])
                 compare_list.clear()
 
         return result
@@ -344,30 +366,11 @@ class Controller(QtWidgets.QMainWindow):
         save_to_excel(save_path, self.final, COLUMES)
         self.ui.labelConsole.setText("Result saved")
 
-    def draw(self):
-        dr = Figure_Canvas()
-        dr.draw_pie(self.final)
-        graphicscene = QtWidgets.QGraphicsScene()
-        graphicscene.addWidget(dr)
-        self.ui.canvas.setScene(graphicscene)
-        self.ui.canvas.show()
-
-
-# connect pyqt and matplot
-class Figure_Canvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=3, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=135)
-
-        FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
-
-        self.axes = fig.add_subplot(111)
-
-    def draw_pie(self, final):
+    def __cal(self):
         row_wrong_counter = 0
         counter_80 = 0
-        total = len(final[0])
-        matrix = np.mat(final)
+        total = len(self.final[0])
+        matrix = np.mat(self.final)
         matrix = matrix.T
         matrix = matrix.tolist()
         for i in range(len(matrix)):
@@ -392,12 +395,45 @@ class Figure_Canvas(FigureCanvas):
             X.append(row_wrong_counter - counter_80)
             LABELS.append("Fail")
 
-        # draw
-        self.axes.pie(
+        return X, LABELS
+
+    def draw(self):
+        dr = Figure_Canvas()
+
+        X, LABELS = self.__cal()
+
+        dr.axes.pie(
             x=X,
             labels=LABELS,
             radius=1.5,
             startangle=60,
             autopct="%.1f%%",
-            textprops={"weight": "bold", "size": 16},
+            textprops={
+                "weight": "bold",
+                "size": 16
+            },
         )
+
+        graphicscene = QGraphicsScene()
+        graphicscene.addWidget(dr)
+        self.ui.canvas.setScene(graphicscene)
+        self.ui.canvas.show()
+
+        self.show_message()
+
+    def show_message(self):
+        text = ""
+        for txt in self.error_list:
+            text += txt + '\n'
+
+        QMessageBox.warning(self, "Warning", f"recognition fail:\n{text}")
+
+
+# connect pyqt and matplot
+class Figure_Canvas(FigureCanvas):
+
+    def __init__(self, parent=None, width=5, height=3, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=135)
+        super(Figure_Canvas, self).__init__(fig)
+        # self.setParent(parent)
+        self.axes = fig.add_subplot(111)

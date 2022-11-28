@@ -8,7 +8,9 @@ import os
 
 
 class InvoiceDetection:
-    def __init__(self, model_path, weights, name_list) -> None:
+
+    def __init__(self, model_path: str, weights: list,
+                 name_list: list) -> None:
         # model
         """model from network
         self.model = torch.hub.load(
@@ -16,9 +18,11 @@ class InvoiceDetection:
         )
         """
         # local model
-        self.model = torch.hub.load(
-            "yolov5", "custom", path=model_path, source="local", force_reload=True
-        )
+        self.model = torch.hub.load("yolov5",
+                                    "custom",
+                                    path=model_path,
+                                    source="local",
+                                    force_reload=True)
 
         # name list and weights
         self.weights = weights
@@ -40,6 +44,9 @@ class InvoiceDetection:
         return result
 
     def img_blur(self, image, method, kernel_size):
+        """
+        img blur
+        """
         # check the kernel_size user input is odd
         if kernel_size % 2 == 0:
             kernel_size += 1
@@ -57,15 +64,15 @@ class InvoiceDetection:
 
         # extract yolo's result tensor
         for i in range(len(info_loc.xyxy[0])):
+            # for i in range(2):
             # in each info find the correct label name
             which_tag = int(info_loc.xyxy[0][i][5])
             position_list = self.weights[which_tag].copy()
             for j in range(len(info_loc.xyxy[0][0]) - 2):
                 position_list[j] += int(info_loc.xyxy[0][i][j])
 
-            key, value = self.__word_recognize(
-                image, position_list, self.name_list[which_tag]
-            )
+            key, value = self.__word_recognize(image, position_list,
+                                               self.name_list[which_tag])
             # add result to ans_dict
             ans_dict[f"{key}"] = value
             # clean the list for next info
@@ -75,14 +82,10 @@ class InvoiceDetection:
         ans_dict = self.__fillup(ans_dict)
 
         # find untaxed if untaxed is None
-        if (
-            ans_dict["untaxed"] == ""
-            and ans_dict["tax"] != ""
-            and ans_dict["total"] != ""
-        ):
+        if (ans_dict["untaxed"] == "" and ans_dict["tax"] != ""
+                and ans_dict["total"] != ""):
             ans_dict["untaxed"] = self.__compute_untaxed(
-                ans_dict["total"], ans_dict["tax"]
-            )
+                ans_dict["total"], ans_dict["tax"])
 
         return ans_dict
 
@@ -104,10 +107,8 @@ class InvoiceDetection:
         bias_buttom = random.randrange(-5, 5)
 
         # crop
-        img_crop = image[
-            position[1] + bias_left : position[3] + bias_top,
-            position[0] + bias_right : position[2] + bias_buttom,
-        ]
+        img_crop = image[position[1] + bias_left:position[3] + bias_top,
+                         position[0] + bias_right:position[2] + bias_buttom, ]
         return img_crop
 
     def __word_recognize(self, image, position, tag_name):
@@ -123,6 +124,7 @@ class InvoiceDetection:
 
             # crop
             img_crop = self.__crop(image, position)
+            # cv2.imshow(f"crop{iter}", img_crop)
 
             # get words
             new_text = ""
@@ -138,13 +140,8 @@ class InvoiceDetection:
                 if not self.__check_invoice_num(new_text):
                     new_text = "x"
             elif tag_name == "tax" or tag_name == "total" or tag_name == "untaxed":
-                new_text = (
-                    text.replace(",", "")
-                    .replace(" ", "")
-                    .strip("\n")
-                    .strip("\t")
-                    .strip()
-                )
+                new_text = (text.replace(",", "").replace(
+                    " ", "").strip("\n").strip("\t").strip())
 
             # print(f"{tag_name}: {new_text}")
             text = new_text
@@ -157,7 +154,7 @@ class InvoiceDetection:
                 best_text = str(int(float(best_text)))
                 best_text = "".join(filter(str.isdigit, best_text))
             except:
-                print(f'tried convert the type of "{tag_name}" to float but failed')
+                # print(f'tried convert the type of "{tag_name}" to float but failed')
                 best_text = ""
         elif tag_name == "date":
             best_text = self.__convert_date(best_text)
@@ -196,6 +193,7 @@ class InvoiceDetection:
 
 
 def save_to_excel(folder_path, ans_dict, columns):
+
     def uniquify(path):
         filename, extension = os.path.splitext(path)
         counter = 1
@@ -235,3 +233,15 @@ if __name__ == "__main__":
     NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
     OPEN_PATH = "./f25_1"
     SAVE_PATH = "./results"
+
+    IMAGE_PATH = "./f25_1/elec_invoice_0.jpg"
+
+    # ocr
+    image = cv2.imread(IMAGE_PATH)
+    model = InvoiceDetection(MODEL, WEIGHTS, NAME_LIST)
+    loc = model.info_detection(IMAGE_PATH)
+    print(loc.xyxy)
+    # result_dict = model.ocr(image, loc)
+
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()

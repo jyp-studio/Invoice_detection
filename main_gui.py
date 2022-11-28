@@ -9,6 +9,7 @@ from setting import INVOICE_FORMAT
 
 
 class Ui_MainWindow(object):
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(800, 581)
@@ -72,7 +73,8 @@ class Ui_MainWindow(object):
         self.btnSave.setText(_translate("MainWindow", "Select Folder"))
         self.btnStart.setText(_translate("MainWindow", "Start"))
         self.labelFormat.setText(_translate("MainWindow", "Format"))
-        self.labelConsole.setText(_translate("MainWindow", "Please fill in data"))
+        self.labelConsole.setText(
+            _translate("MainWindow", "Please fill in data"))
         self.labelPath.setText(_translate("MainWindow", "Open"))
         self.labelSave.setText(_translate("MainWindow", "Save"))
 

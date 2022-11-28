@@ -15,9 +15,19 @@ WEIGHTS = [
     [-5, -10, 5, 10],  # total
     [0, -5, 5, 8],  # untaxed
 ]
+
+WEIGHTS = [
+    [0, 5, 0, 0],  # data
+    [0, 0, 0, 0],  # id
+    [0, 0, 0, 0],  # invoice_number
+    [-10, 0, 0, 0],  # tax
+    [5, 0, 20, 0],  # total
+    [0, 10, 20, 0],  # untaxed
+]
+
 NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
 
-IMAGE_PATH = "./f25_1s/elec_invoice_36.jpg"
+IMAGE_PATH = "./f25_1/elec_invoice_6.jpg"
 
 
 def ocr(image, info_loc) -> dict:
