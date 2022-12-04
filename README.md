@@ -26,13 +26,13 @@ Finally, we tested 25 invoices and got 96% correct. Comparing the time and accur
    git clone https://github.com/jyp-studio/Invoice_detection.git
    ```
 
-2. Clone yolov5 respository for trainning models.
+2. Clone [yolov5](https://github.com/ultralytics/yolov5) respository for trainning models.
 
    ```git
    git clone https://github.com/ultralytics/yolov5.git
    ```
 
-3. Install related packages for all respositories. There are requirements.txt in both my respository and yolov5 respository. That is, you can easily install packages by typing
+3. Install related packages for all respositories. There are <span style="color:lightblue">requirements.txt</span> in both my respository and yolov5 respository. That is, you can easily install packages by typing
 
    ```
    pip install requirements.txt
@@ -43,3 +43,5 @@ Finally, we tested 25 invoices and got 96% correct. Comparing the time and accur
 4. Done!
 
 ## Tutorials
+
+run `main.py`
