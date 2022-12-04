@@ -32,7 +32,7 @@ Finally, we tested 25 invoices and got 96% correct. Comparing the time and accur
    git clone https://github.com/ultralytics/yolov5.git
    ```
 
-3. Install related packages for all respositories. There are <span style="color:lightblue">requirements.txt</span> in both my respository and yolov5 respository. That is, you can easily install packages by typing
+3. Install related packages for all respositories. There are `requirements.txt` in both my respository and yolov5 respository. That is, you can easily install packages by typing
 
    ```
    pip install requirements.txt
@@ -44,4 +44,10 @@ Finally, we tested 25 invoices and got 96% correct. Comparing the time and accur
 
 ## Tutorials
 
-run `main.py`
+run `main.py`.
+
+It will show a friendly graphic user interface for using this system. Click buttons to select the path of input image folder and output result folder. <b>Remind that the input image must be jpg format.</b>
+
+After that, click the start button to start the system. The console will display its states for users to know what is going on clearly.
+
+When the system is done, the result will save to the desination that you set in the beginning as excel. In addition, the system will also show a message box to tell users that which invoice is fail to recognize.
