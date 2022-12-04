@@ -1,6 +1,8 @@
-# <center>Image Detection</center>
+# <p align="center">Image Detection</p>
 
 This is an AI model for detecting and recognizing invoice information by yolov5 and OCR.
+
+## Introduction
 
 In Taiwan, companies should enter invoices into the accounting system every month to create financial statements. To solve such a single and highly repetitive matter, we decided to build a robot to automatically identify the information in the invoice and upload it to the accounting system.
 
@@ -10,12 +12,34 @@ I mainly use yolov5 to train the model to circle the coordinates of the invoice 
 
 Finally, we tested 25 invoices and got 96% correct. Comparing the time and accuracy spent by financial personnel in the past, we can find that our system can effectively reduce time costs and human resources for the company.
 
-# <center>Documentation</center>
+# <p align="center">Documentation</p>
 
-[Installation]("Installation")
+[Installation](#installition)
 
-[Tutorials]("Tutorials")
+[Tutorials](#tutorials)
 
 ## Installition
 
-1. clone the repository.
+1. Clone this repository.
+
+   ```git
+   git clone https://github.com/jyp-studio/Invoice_detection.git
+   ```
+
+2. Clone yolov5 respository for trainning models.
+
+   ```git
+   git clone https://github.com/ultralytics/yolov5.git
+   ```
+
+3. Install related packages for all respositories. There are requirements.txt in both my respository and yolov5 respository. That is, you can easily install packages by typing
+
+   ```
+   pip install requirements.txt
+   ```
+
+   on the terminal.
+
+4. Done!
+
+## Tutorials
