@@ -2,9 +2,8 @@ import torch
 import cv2
 import pytesseract
 
-
 # yolo weights path
-MODEL = "./weights/best_v2.pt"
+MODEL = "./weights/f25_1_500_v1.pt"
 # weights of crop position (left, top, right, bottom)
 # f25_1 weight
 WEIGHTS = [
@@ -16,18 +15,9 @@ WEIGHTS = [
     [0, -5, 5, 8],  # untaxed
 ]
 
-WEIGHTS = [
-    [0, 5, 0, 0],  # data
-    [0, 0, 0, 0],  # id
-    [0, 0, 0, 0],  # invoice_number
-    [-10, 0, 0, 0],  # tax
-    [5, 0, 20, 0],  # total
-    [0, 10, 20, 0],  # untaxed
-]
-
 NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
 
-IMAGE_PATH = "./f25_1/elec_invoice_6.jpg"
+IMAGE_PATH = "./testing_set/f25_1/elec_invoice_20.jpg"
 
 
 def ocr(image, info_loc) -> dict:
@@ -53,10 +43,7 @@ def ocr(image, info_loc) -> dict:
 
 def crop(image, position):
     # crop
-    img_crop = image[
-        position[1] : position[3],
-        position[0] : position[2],
-    ]
+    img_crop = image[position[1]:position[3], position[0]:position[2]]
     return img_crop
 
 
