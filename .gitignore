@@ -2,7 +2,7 @@
 yolov5*
 
 # ignore weights
-*.pt
+# *.pt
 
 # ignore pipfile
 Pipfile*
