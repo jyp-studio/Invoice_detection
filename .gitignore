@@ -1,5 +1,5 @@
 # ignore yolov5
-yolov5*
+yolov5
 
 # ignore weights
 # *.pt
@@ -8,10 +8,8 @@ yolov5*
 Pipfile*
 
 # ignore dataset
-dataset*
-test
-elec*
-f25*
+testing_set
+
 
 # ignore results
 results
