@@ -275,7 +275,7 @@ class Controller(QtWidgets.QMainWindow):
 
                 # print("=========ANSWER==========")
                 # for key, value in result_dict.items():
-                #    print(f"{key}: {value}")
+                #     print(f"{key}: {value}")
                 # print("=========ANSWER==========")
 
                 # append to final list
@@ -313,6 +313,7 @@ class Controller(QtWidgets.QMainWindow):
             # save to excel
             final = [years, months, dates, id, invoice_num, format_id, untaxed]
             return final
+
         except:
             self.ui.labelConsole.setText("Path not found or Network error")
 
@@ -329,17 +330,10 @@ class Controller(QtWidgets.QMainWindow):
             self.save()
 
     def compare(self):
-        print(self.indices)
-        print(self.final1)
-        print(self.final2)
-        print(self.final3)
-        print(self.final4)
-        print(self.final5)
         result = copy.deepcopy(self.final1)
         compare_list = []
         for i in range(len(self.final1)):
             for j in range(len(self.final1[i])):
-                print(i, j)
                 compare_list.append(self.final1[i][j])
                 compare_list.append(self.final2[i][j])
                 compare_list.append(self.final3[i][j])

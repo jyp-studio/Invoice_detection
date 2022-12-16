@@ -19,30 +19,39 @@ WEIGHTS = [
     [0, -5, 5, 8],  # untaxed
 ]
 
+WEIGHTS_F25_2 = [
+    [-5, -10, 15, 10],  # data
+    [0, -8, 5, 10],  # id
+    [-5, -5, 10, 5],  # invoice_number
+    [0, -10, 5, 10],  # tax
+    [-5, -10, 5, 10],  # total
+    [0, -5, 5, 8],  # untaxed
+]
+
 # weight dict
 WEIGHTS_1 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
-WEIGHTS_2 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
+WEIGHTS_2 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_2}
 WEIGHTS_3 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
-WEIGHTS_4 = {"25": WEIGHTS, "25 block": WEIGHTS_F25_1}
+WEIGHTS_4 = {"25": WEIGHTS_F25_2, "25 block": WEIGHTS_F25_1}
 WEIGHTS_5 = {"25": WEIGHTS, "25 block": WEIGHTS_F25_1}
 
 # format
 INVOICE_FORMAT = ["25", "25 block"]
 
 # model
-pt_f25_1all_v2 = "./weights/f25_1all_v2.pt"
-pt_f25_1all_v3 = "./weights/f25_1all_v3.pt"
-pt_f25_1all_v4 = "./weights/f25_1all_v4.pt"
-pt_f25_1 = "./weights/f25_1.pt"
-pt_best = "./weights/best.pt"
 pt_best_v2 = "./weights/best_v2.pt"
 pt_f25_1_500_v1 = "./weights/f25_1_500_v1.pt"
+pt_f25_1_500_v2 = "./weights/f25_1_500_v2.pt"
+pt_f25_1s_500_v1 = "./weights/f25_1s_500_v1.pt"
+pt_f25_2_500_v1 = "./weights/f25_2_500_v1.pt"
+pt_f25_all_500_v1 = "./weights/f25_all_500_v1.pt"
 
-MODELS_1 = {"25": pt_f25_1all_v4, "25 block": pt_f25_1}
-MODELS_2 = {"25": pt_f25_1_500_v1, "25 block": pt_f25_1all_v4}
-MODELS_3 = {"25": pt_f25_1all_v3, "25 block": pt_f25_1all_v4}
-MODELS_4 = {"25": pt_best, "25 block": pt_f25_1all_v4}
-MODELS_5 = {"25": pt_best_v2, "25 block": pt_f25_1all_v4}
+MODELS_1 = {"25": pt_f25_1_500_v1, "25 block": pt_f25_2_500_v1}
+MODELS_2 = {"25": pt_f25_1_500_v2, "25 block": pt_f25_all_500_v1}
+MODELS_3 = {"25": pt_f25_1s_500_v1, "25 block": pt_f25_1_500_v1}
+MODELS_4 = {"25": pt_f25_all_500_v1, "25 block": pt_f25_1_500_v2}
+MODELS_5 = {"25": pt_best_v2, "25 block": pt_f25_1s_500_v1}
+
 
 NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
 

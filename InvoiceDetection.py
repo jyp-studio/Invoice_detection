@@ -33,7 +33,9 @@ class InvoiceDetection:
         self.brightness = 0
 
     def info_detection(self, image):
+        print("info detecting...")
         result = self.model(image)
+        print("info detected")
         # result.show()
         return result
 
