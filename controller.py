@@ -257,7 +257,7 @@ class Controller(QtWidgets.QMainWindow):
                 # load image and dectect infos' location
                 img_path = os.path.join(open_path, img)
                 try:
-                    image = cv2.imread(img_path)
+                    image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
                     image_info_loc = invoice_det.info_detection(img_path)
                 except:
                     continue
@@ -419,7 +419,8 @@ class Controller(QtWidgets.QMainWindow):
         self.ui.canvas.setScene(graphicscene)
         self.ui.canvas.show()
 
-        self.show_message()
+        if self.error_list:
+            self.show_message()
 
     def show_message(self):
         text = ""

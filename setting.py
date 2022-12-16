@@ -20,14 +20,14 @@ WEIGHTS = [
 ]
 
 # weight dict
-WEIGHTS_1 = {"25": WEIGHTS_F25_1, "25 long": WEIGHTS_F25_1}
-WEIGHTS_2 = {"25": WEIGHTS_F25_1, "25 long": WEIGHTS_F25_1}
-WEIGHTS_3 = {"25": WEIGHTS_F25_1, "25 long": WEIGHTS_F25_1}
-WEIGHTS_4 = {"25": WEIGHTS, "25 long": WEIGHTS_F25_1}
-WEIGHTS_5 = {"25": WEIGHTS, "25 long": WEIGHTS_F25_1}
+WEIGHTS_1 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
+WEIGHTS_2 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
+WEIGHTS_3 = {"25": WEIGHTS_F25_1, "25 block": WEIGHTS_F25_1}
+WEIGHTS_4 = {"25": WEIGHTS, "25 block": WEIGHTS_F25_1}
+WEIGHTS_5 = {"25": WEIGHTS, "25 block": WEIGHTS_F25_1}
 
 # format
-INVOICE_FORMAT = ["25", "25 long", "25 block"]
+INVOICE_FORMAT = ["25", "25 block"]
 
 # model
 pt_f25_1all_v2 = "./weights/f25_1all_v2.pt"
@@ -36,15 +36,16 @@ pt_f25_1all_v4 = "./weights/f25_1all_v4.pt"
 pt_f25_1 = "./weights/f25_1.pt"
 pt_best = "./weights/best.pt"
 pt_best_v2 = "./weights/best_v2.pt"
+pt_f25_1_500_v1 = "./weights/f25_1_500_v1.pt"
 
-MODELS_1 = {"25": pt_f25_1all_v4, "25 long": pt_f25_1}
-MODELS_2 = {"25": pt_f25_1all_v2, "25 long": pt_f25_1all_v4}
-MODELS_3 = {"25": pt_f25_1all_v3, "25 long": pt_f25_1all_v4}
-MODELS_4 = {"25": pt_best, "25 long": pt_f25_1all_v4}
-MODELS_5 = {"25": pt_best_v2, "25 long": pt_f25_1all_v4}
+MODELS_1 = {"25": pt_f25_1all_v4, "25 block": pt_f25_1}
+MODELS_2 = {"25": pt_f25_1_500_v1, "25 block": pt_f25_1all_v4}
+MODELS_3 = {"25": pt_f25_1all_v3, "25 block": pt_f25_1all_v4}
+MODELS_4 = {"25": pt_best, "25 block": pt_f25_1all_v4}
+MODELS_5 = {"25": pt_best_v2, "25 block": pt_f25_1all_v4}
 
 NAME_LIST = ["date", "id", "invoice_number", "tax", "total", "untaxed"]
 
 COLUMES = ["資料年", "月份", "發票日期", "對方統一編號", "發票號碼", "格式編號", "銷售金額"]
 
-ALL_FORMATS = {"25": 25, "25 long": 25, "25 block": 25}
+ALL_FORMATS = {"25": 25, "25 block": 25}
